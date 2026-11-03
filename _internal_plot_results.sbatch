@@ -29,27 +29,10 @@ echo "PWD=$(pwd)"
 echo "PYTHON=$(which python)"
 
 echo "Analyzing folder: $1"
-
 foldername=$(basename "$1")
 echo "Data Product: $foldername"
 
 diff_dir="/oak/stanford/groups/cyaolai/AashrayChegu/DIFFICE_DIFFS"
-
-cd /oak/stanford/groups/cyaolai/AashrayChegu/compute_metrics
-
-# echo "Starting Zarr Export"
-# python3 regular_grid_evaluation.py     --folder $1
-
-# if [ "$#" -eq 2 ]; then
-#     echo "Generating Comparisons"
-#     python3 generate_comparisons.py    --folder $1 --config $analysis_config
-# fi
-
-# echo "Mean Residuals"
-# python3 get_mean_residual.py           --folder $1 --save-location /oak/stanford/groups/cyaolai/AashrayChegu/compute_metrics/residual_csvs/
-
-# echo "Making PowerPoints"
-# python3 make_pptx.py                   --folder $1
 
 cd /oak/stanford/groups/cyaolai/AashrayChegu/evaluate_inversions
 
@@ -67,27 +50,24 @@ if [ "$#" -neq 2 ]; then
 fi
 
 cp $2/* $1 
+mkdir "$diff_dir/$foldername"
+cp $2/* "$diff_dir/$foldername"
+
 
 if [ -e "$1/fields_over_time.toml" ]; then
-
     echo "Plot Fields Over Time"
     python3 3_fields_over_time.py --folder $1
-
 fi
 
 if [ -e "$1/diff.toml" ]; then
-       
     echo "Diffing the Zarrs"
     python3 4_diff_zarrs.py --folder $1
 
     echo "Visualizing the Diffed Zarrs"
     python3 5_viz_diff_zarrs.py --folder "$diff_dir/$foldername"
-
 fi
 
 if [ -e "$1/comparisons.toml" ]; then
-       
     echo "Cross Comparison Plots"
     python3 6_cross_comparison_plots.py --folder "$diff_dir/$foldername"
-
 fi
