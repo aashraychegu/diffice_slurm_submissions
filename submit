@@ -1,0 +1,6 @@
+#!/bin/bash
+set -euo pipefail
+echo "-~=*=~-"
+module purge &> /dev/null
+module load python/3.12.1 &> /dev/null
+python3 submit.py "$@"
