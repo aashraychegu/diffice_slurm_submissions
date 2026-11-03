@@ -8,10 +8,11 @@ import jinja2
 
 parser = ArgumentParser(prog = "submit_inversions.py", description = "Submit DIFFICE Inversions", epilog = "")
 parser.add_argument("--product"  , default = None        , help = "Product name to run inversions on. [REQUIRED to properly run]")
+parser.add_argument("--product-dir", default = "/oak/stanford/groups/cyaolai/AashrayChegu/data-product/product/", help = "The directory where your data product is located")
+
 parser.add_argument("--runtime_h" , default = 8, type = int, help = "How many hours should the script run for")
 parser.add_argument("--gpu_constraint"   , nargs = "+", default = ["40", "80", "48"], help = "VRAM requirements on the GPUs")
 parser.add_argument("--mock"     , action = "store_true" , default = False, help = "Do a Mock Submission")
-parser.add_argument("--product-dir", default = "/oak/stanford/groups/cyaolai/AashrayChegu/data-product/product/", help = "The directory where your data product is located")
 
 parser.add_argument("--configs-dirs-location", default = "/oak/stanford/groups/cyaolai/AashrayChegu/evaluate_inversions/configs/", help = "The directory where your metrics configuration file is located")
 parser.add_argument("--configs-dir", default = None, help = "The comparison config to use. Defaults to `None`, which does nothing")
@@ -42,12 +43,12 @@ for file in product_dir.glob("*/"):
     all_data_product_config_files.append(file.stem)
 print("="*100)
 
-all_config_file_dirs = []
+all_configs_file_dirs = []
 print("\nConfiguration File Directories:")
 print("-"*100)
 for file in configs_dirs_location.iterdir():
     print(f"-> {file.stem}")
-    all_config_file_dirs.append(file.stem)
+    all_configs_file_dirs.append(file.stem)
 print("="*100)
 
 if args.product is None or args.configs_dir is None:
@@ -58,7 +59,7 @@ if product not in all_data_product_config_files:
     print(f"[ERROR] Invalid product: {product}")
     exit()
 
-if configs_dir is not None and configs_dir not in all_config_file_dirs:
+if configs_dir is not None and configs_dir not in all_configs_file_dirs:
     print(f"[ERROR] Invalid config_dir: {configs_dir}")
     exit()
 
@@ -102,13 +103,16 @@ for config_file in (pbar := tqdm(config_files)):
 print("Output Dir:",output_dir)
 
 slug = ["sbatch", "--parsable", "-d", f"afterany:{":".join(job_ids)}" ,"_internal_plot_results.sbatch", output_dir]
+
 if configs_dir is not None:
-    slug.append(configs_dir)
+    slug.append((configs_dirs_location / configs_dir).as_posix())
+
 if not mock:
     output = subprocess.run(slug, capture_output = True)
     job_id = output.stdout.strip().decode()
     subprocess.run(["scontrol", "update", f"JobId={job_id}", f"JobName=Plotting-DIFFICE:{product}"])
     job_ids.append(job_id)
+
 else:
     print(f"mocking with slug: {" ".join(slug)}")
     job_id = mock_value

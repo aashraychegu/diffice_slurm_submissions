@@ -49,22 +49,22 @@ if [ "$#" -neq 2 ]; then
     exit 0
 fi
 
-cp $2/* $1 
-mkdir "$diff_dir/$foldername"
-cp $2/* "$diff_dir/$foldername"
+cp -n $2/* $1 
+mkdir -p "$diff_dir/$foldername"
+cp -n $2/* "$diff_dir/$foldername"
 
 
 if [ -e "$1/fields_over_time.toml" ]; then
     echo "Plot Fields Over Time"
-    python3 3_fields_over_time.py --folder $1
+    python3 3_fields_over_time.py       --folder $1
 fi
 
 if [ -e "$1/diff.toml" ]; then
     echo "Diffing the Zarrs"
-    python3 4_diff_zarrs.py --folder $1
+    python3 4_diff_zarrs.py             --folder $1
 
     echo "Visualizing the Diffed Zarrs"
-    python3 5_viz_diff_zarrs.py --folder "$diff_dir/$foldername"
+    python3 5_viz_diff_zarrs.py         --folder "$diff_dir/$foldername"
 fi
 
 if [ -e "$1/comparisons.toml" ]; then
