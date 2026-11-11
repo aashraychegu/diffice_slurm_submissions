@@ -45,9 +45,12 @@ python3 2_viz_zarrs.py          --folder $1
 echo "Mean Residuals"
 python3 7_get_mean_residuals.py --folder $1
 
-if [ "$#" -neq 2 ]; then
+
+if [ "$#" -ne 2 ]; then
     exit 0
 fi
+
+echo "Using Postprocessing configuration at: $2"
 
 cp -n $2/* $1 
 mkdir -p "$diff_dir/$foldername"

@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 echo "-~=*=~-"
+alias queue="squeue -u aashrayc --format='%.18i %.9P %.75j %.8u %.10T %.10M %.10l %.6D %R'"
 module purge &> /dev/null
 module load python/3.12.1 &> /dev/null
 python3 submit.py "$@"

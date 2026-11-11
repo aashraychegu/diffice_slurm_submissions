@@ -51,7 +51,7 @@ for file in configs_dirs_location.iterdir():
     all_configs_file_dirs.append(file.stem)
 print("="*100)
 
-if args.product is None or args.configs_dir is None:
+if args.product is None:
     parser.print_help()
     exit()
 
@@ -112,7 +112,6 @@ if not mock:
     job_id = output.stdout.strip().decode()
     subprocess.run(["scontrol", "update", f"JobId={job_id}", f"JobName=Plotting-DIFFICE:{product}"])
     job_ids.append(job_id)
-
 else:
     print(f"mocking with slug: {" ".join(slug)}")
     job_id = mock_value
