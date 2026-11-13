@@ -36,15 +36,14 @@ diff_dir="/oak/stanford/groups/cyaolai/AashrayChegu/DIFFICE_DIFFS"
 
 cd /oak/stanford/groups/cyaolai/AashrayChegu/evaluate_inversions
 
+echo "Mean Residuals"
+python3 0_get_mean_residuals.py --folder $1
+
 echo "Building Zarrs"
 python3 1_build_zarr.py         --folder $1
 
 echo "Building Plots"
 python3 2_viz_zarrs.py          --folder $1
-
-echo "Mean Residuals"
-python3 7_get_mean_residuals.py --folder $1
-
 
 if [ "$#" -ne 2 ]; then
     exit 0
@@ -68,9 +67,12 @@ if [ -e "$1/diff.toml" ]; then
 
     echo "Visualizing the Diffed Zarrs"
     python3 5_viz_diff_zarrs.py         --folder "$diff_dir/$foldername"
+
+    echo "Comparing Fields for Diff"
+    python3 6_compare_fields_for_diff.py --folder $1
 fi
 
 if [ -e "$1/comparisons.toml" ]; then
     echo "Cross Comparison Plots"
-    python3 6_cross_comparison_plots.py --folder "$diff_dir/$foldername"
+    python3 7_cross_comparison_plots.py --folder "$diff_dir/$foldername"
 fi
