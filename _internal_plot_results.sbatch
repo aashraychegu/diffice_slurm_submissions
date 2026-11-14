@@ -23,6 +23,9 @@ module restore compute_stress
 unset JAX_PLATFORMS
 unset JAX_PLATFORM_NAME
 
+bigtext() {
+    pyfiglet -f starwars -w 140 "$@"
+}
 
 echo "HOSTNAME=$(hostname)"
 echo "PWD=$(pwd)"
@@ -36,13 +39,13 @@ diff_dir="/oak/stanford/groups/cyaolai/AashrayChegu/DIFFICE_DIFFS"
 
 cd /oak/stanford/groups/cyaolai/AashrayChegu/evaluate_inversions
 
-echo "Mean Residuals"
+bigtext "0 | Mean Residuals"
 python3 0_get_mean_residuals.py --folder $1
 
-echo "Building Zarrs"
+bigtext "1 | Building Zarrs"
 python3 1_build_zarr.py         --folder $1
 
-echo "Building Plots"
+bigtext "2 | Building Plots"
 python3 2_viz_zarrs.py          --folder $1
 
 if [ "$#" -ne 2 ]; then
@@ -51,28 +54,32 @@ fi
 
 echo "Using Postprocessing configuration at: $2"
 
-cp -n $2/* $1 
+cp $2/* $1 
 mkdir -p "$diff_dir/$foldername"
-cp -n $2/* "$diff_dir/$foldername"
+cp $2/* "$diff_dir/$foldername"
 
 
 if [ -e "$1/fields_over_time.toml" ]; then
-    echo "Plot Fields Over Time"
+    bigtext "3 | Plot Fields Over Time"
     python3 3_fields_over_time.py       --folder $1
 fi
 
 if [ -e "$1/diff.toml" ]; then
-    echo "Diffing the Zarrs"
+    bigtext "4 | Diffing the Zarrs"
     python3 4_diff_zarrs.py             --folder $1
 
-    echo "Visualizing the Diffed Zarrs"
+    bigtext "5 | Visualizing the Diffed Zarrs"
     python3 5_viz_diff_zarrs.py         --folder "$diff_dir/$foldername"
 
-    echo "Comparing Fields for Diff"
+    bigtext "6 | Comparing Fields for Diff"
     python3 6_compare_fields_for_diff.py --folder $1
+    
+    bigtext "7 | Comparing Stress Components for Diff"
+    python3 7_stress_difference_components.py --folder $1
+
 fi
 
 if [ -e "$1/comparisons.toml" ]; then
-    echo "Cross Comparison Plots"
-    python3 7_cross_comparison_plots.py --folder "$diff_dir/$foldername"
+    bigtext "8 | Cross Comparison Plots"
+    python3 8_cross_comparison_plots.py --folder "$diff_dir/$foldername"
 fi
