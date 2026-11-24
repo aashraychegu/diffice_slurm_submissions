@@ -9,7 +9,7 @@
 #SBATCH --constraint="GPU_MEM:48GB|GPU_MEM:80GB|GPU_MEM:40GB"
 #SBATCH --gres=gpu:1             # number of gpus per node
 #SBATCH --mem-per-cpu=4G         # memory per cpu-core (4G is default)
-#SBATCH --time=10:00:00          # total run time limit (HH:MM:SS)
+#SBATCH --time=5:00:00          # total run time limit (HH:MM:SS)
 #SBATCH --mail-user=aashrayc@stanford.edu
 #SBATCH --mail-type=START,END,FAIL
 
