@@ -17,6 +17,8 @@ parser.add_argument("--mock"     , action = "store_true" , default = False, help
 parser.add_argument("--configs-dirs-location", default = "/oak/stanford/groups/cyaolai/AashrayChegu/evaluate_inversions/configs/", help = "The directory where your metrics configuration file is located")
 parser.add_argument("--configs-dir", default = None, help = "The comparison config to use. Defaults to `None`, which does nothing")
 
+parser.add_argument("--plot-only", action = "store_true", default = False, help = "Skip inversion submission and only run results plotting")
+
 parser.add_argument("--history-dir", default = "./history", help = "The directory for logs")
 parser.add_argument("--template-path", default = "./_internal_diffice_slurm_script_template.jinja2", help = "The path to the template")
 
@@ -87,22 +89,34 @@ config_files = list((product_dir / product).glob("*.yaml"))
 
 job_ids = []
 output_dir = ""
-for config_file in (pbar := tqdm(config_files)):
-    config = yaml.safe_load(config_file.read_text())
-    if not mock:
-        output = subprocess.run(["sbatch", "--parsable", submit_script.as_posix(), config_file.as_posix()], capture_output = True)
-        job_id = output.stdout.strip().decode()
-        subprocess.run(["scontrol", "update", f"JobId={job_id}", f"JobName=DIFFICE:{config["name"]}"])
-    else:
-        job_id = mock_value
-    job_ids.append(job_id)
-    message = f"Submitted {job_id} successfully at {get_str_datetime()}"
-    pbar.set_description(f"{message:<75}")
-    log_file.write(f"{message}\n")
-    output_dir = Path(config["artifacts"]["output_dir"]).resolve().absolute().parent.as_posix()
-print("Output Dir:",output_dir)
 
-slug = ["sbatch", "--parsable", "-d", f"afterany:{":".join(job_ids)}" ,"_internal_plot_results.sbatch", output_dir]
+if not args.plot_only:
+    for config_file in (pbar := tqdm(config_files)):
+        config = yaml.safe_load(config_file.read_text())
+        if not mock:
+            output = subprocess.run(["sbatch", "--parsable", submit_script.as_posix(), config_file.as_posix()], capture_output = True)
+            job_id = output.stdout.strip().decode()
+            subprocess.run(["scontrol", "update", f"JobId={job_id}", f"JobName=DIFFICE:{config["name"]}"])
+        else:
+            job_id = mock_value
+        job_ids.append(job_id)
+        message = f"Submitted {job_id} successfully at {get_str_datetime()}"
+        pbar.set_description(f"{message:<75}")
+        log_file.write(f"{message}\n")
+        output_dir = Path(config["artifacts"]["output_dir"]).resolve().absolute().parent.as_posix()
+else:
+    config = yaml.safe_load(config_files[0].read_text())
+    output_dir = Path(config["artifacts"]["output_dir"]).resolve().absolute().parent.as_posix()
+    message = f"Plot-only mode: skipping inversion submission, plotting from {output_dir}"
+    print(message)
+    log_file.write(f"{message}\n")
+
+print("Output Dir:", output_dir)
+
+slug = ["sbatch", "--parsable"]
+if job_ids:
+    slug += ["-d", f"afterany:{":".join(job_ids)}"]
+slug += ["_internal_plot_results.sbatch", output_dir]
 
 if configs_dir is not None:
     slug.append((configs_dirs_location / configs_dir).as_posix())
@@ -124,6 +138,3 @@ log_file.write(f"\n{" ".join(job_ids)}")
 subprocess.run(["squeue", "-u", "aashrayc", r'--format="%.18i %.9P %.120j %.8u %.10T %.10M %.10l %.6D %R"'])
 print(f"Finished Submitting {product}")
 log_file.close()
-
-
-
